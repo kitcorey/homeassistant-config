@@ -185,10 +185,10 @@ group:
     view: yes
     entities:
       - light.couch_corner
-      - light.living_room_dimmer_level
       - light.desk
       - light.living_room_overhead
       - switch.dining_room_light
+      - switch.living_room_switch
 
 scene:
   - name: Movie
@@ -205,7 +205,9 @@ scene:
         brightness: 1
         color_temp: 370
         white_value: 255
-      light.living_room_dimmer_level:
+      switch.living_room_switch:
+        state: off
+      switch.dining_room_light:
         state: off
   - name: Bedroom Day
     entities:
@@ -239,9 +241,8 @@ scene:
       light.couch_corner:
         state: off
         transition: 0
-      light.living_room_dimmer_level:
+      switch.living_room_switch:
         state: off
-        transition: 0
       switch.dining_room_light:
         state: off
   - name: Main Room On
@@ -258,9 +259,8 @@ scene:
         brightness: 153
         color_temp: 360
         white_value: 255
-      light.living_room_dimmer_level:
+      switch.living_room_switch:
         state: on
-        brightness: 255
       switch.dining_room_light:
         state: on
   - name: Main Room Relax
@@ -277,9 +277,8 @@ scene:
         brightness: 75
         color_temp: 370
         white_value: 255
-      light.living_room_dimmer_level:
+      switch.living_room_switch:
         state: off
-        transition: 2
   - name: Desk
     entities:
       light.desk:
@@ -358,17 +357,16 @@ automation:
   - alias: "Living Room On"
     trigger:
       platform: state
-      entity_id: light.living_room_dimmer_level
+      entity_id: switch.living_room_switch
       to: 'on'
     action:
       service: scene.turn_on
       entity_id: scene.main_room_on
   - alias: "Living Room Off"
     trigger:
-      platform: numeric_state
-      entity_id: light.living_room_dimmer_level
-      value_template: '{% if is_state("light.living_room_dimmer_level", "on") %}{{ states.light.living_room_dimmer_level.attributes.brightness }}{% else %}0{% endif %}'
-      below : 255
+      platform: state
+      entity_id: switch.living_room_switch
+      to: 'off'
     condition:
       condition: template
       value_template: "{% if not is_state('media_player.kodi', 'playing') %}true{% endif %}"

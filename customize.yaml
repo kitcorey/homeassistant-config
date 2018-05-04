@@ -1,8 +1,8 @@
-switch.switch:
-  friendly_name: living_room
 binary_sensor.flic_80e4da719b3e:
   friendly_name: BlueFlic
   entity_picture: /local/flic-blue-192x192.png
 binary_sensor.flic_80e4da72aaa9:
   friendly_name: WhiteFlic
   entity_picture: /local/flic-white-192x192.png
+switch.living_room_switch:
+  friendly_name: living_room_switch
