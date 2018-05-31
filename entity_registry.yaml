@@ -14,8 +14,8 @@ light.guest_bedside_table:
   name:
   platform: hue
   unique_id: 00:17:88:01:00:fa:63:04-0b
-light.bed_cree:
-  name:
+light.kitchen_range_cree:
+  name: Kitchen Range (Cree)
   platform: hue
   unique_id: e2:0d:b9:ff:fe:00:59:73-0a
 light.couch_corner:
@@ -38,3 +38,27 @@ switch.living_room_switch:
   name:
   platform: zwave
   unique_id: 3-72057594093060096
+zwave.aeotec_zw090_zstick_gen5_us:
+  name:
+  platform: zwave
+  unique_id: node-1
+zwave.living_room_dimmer:
+  name:
+  platform: zwave
+  unique_id: node-2
+zwave.living_room_switch:
+  name:
+  platform: zwave
+  unique_id: node-3
+switch.kitchen_switch:
+  name: kitchen_switch
+  platform: zwave
+  unique_id: 4-72057594109837312
+zwave.kitchen_switch:
+  name: kitchen_switch
+  platform: zwave
+  unique_id: node-4
+light.kitchen_range:
+  name: Kitchen Range
+  platform: hue
+  unique_id: 00:17:88:01:02:37:fe:ea-0b

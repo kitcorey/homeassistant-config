@@ -5,4 +5,11 @@ binary_sensor.flic_80e4da72aaa9:
   friendly_name: WhiteFlic
   entity_picture: /local/flic-white-192x192.png
 switch.living_room_switch:
-  friendly_name: living_room_switch
+  friendly_name: Living Room Switch
+zwave.homeseer_hsws100_wall_switch:
+  friendly_name: Living Room Switch
+switch.switch:
+  friendly_name: Kitchen Switch
+zwave.homeseer_hsws100_wall_switch_2:
+  friendly_name: Kitchen Switch
+

@@ -2,14 +2,14 @@ homeassistant:
   # Name of the location where Home Assistant is running
   name: Home
   # Location required to calculate the time the sun rises and sets
-  latitude: !secret home_lat 
-  longitude: !secret home_lon 
+  latitude: !secret home_lat
+  longitude: !secret home_lon
   # Impacts weather/sunrise data (altitude above sea level in meters)
-  elevation: !secret home_elevation 
+  elevation: !secret home_elevation
   # metric for Metric, imperial for Imperial
   unit_system: imperial
   # Pick yours from here: http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-  time_zone: !secret home_tz 
+  time_zone: !secret home_tz
   # customize display of components
   customize: !include customize.yaml
 
@@ -27,8 +27,8 @@ notify:
     sender: !secret mail_sender
     encryption: starttls
     username: !secret mail_sender
-    password: !secret mail_password 
-    recipient: !secret mail_recipient 
+    password: !secret mail_password
+    recipient: !secret mail_recipient
 
 # Enables the frontend
 frontend:
@@ -86,7 +86,7 @@ sun:
 sensor:
   - platform: yr
   - platform: darksky
-    api_key: !secret darksky_api_key 
+    api_key: !secret darksky_api_key
     monitored_conditions:
       - summary
       - nearest_storm_distance
@@ -106,7 +106,7 @@ config:
 zwave:
     usb_path: /dev/zwave
     polling_interval: 5000
-    network_key: !secret zwave_network_key 
+    network_key: !secret zwave_network_key
     device_config_domain:
       light:
         polling_intensity: 0
@@ -121,7 +121,7 @@ mqtt:
     keepalive: 60
     protocol: 3.1
     username: kit
-    password: !secret mqtt_password 
+    password: !secret mqtt_password
 
 device_tracker:
   - platform: owntracks
@@ -134,16 +134,16 @@ device_tracker:
 # Example configuration.yaml entry
 media_player:
   - platform: kodi
-    host: !secret kodi_ip 
+    host: !secret kodi_ip
     username: !secret kodi_username
     password: !secret kodi_password
   - platform: denon
-    host: !secret denon_ip 
+    host: !secret denon_ip
     name: Denon
 
 # Example configuration.yaml entry
 #ecobee:
-#  api_key: !secret ecobee_api_key 
+#  api_key: !secret ecobee_api_key
 
 hue:
   bridges:
@@ -155,20 +155,20 @@ light:
 # Add custom zones
 zone 1:
   name: AprilWork
-  latitude: !secret april_work_lat 
+  latitude: !secret april_work_lat
   longitude: !secret april_work_lon
   icon: mdi:lightbulb-on
 
 zone 2:
   name: KitWork
-  latitude: !secret kit_work_lat 
+  latitude: !secret kit_work_lat
   longitude: !secret kit_work_lon
   icon: mdi:fire
 
 zone 3:
   name: Home
-  latitude: !secret home_lat 
-  longitude: !secret home_lon 
+  latitude: !secret home_lat
+  longitude: !secret home_lon
   radius: 100
   icon: mdi:home
 
@@ -195,18 +195,16 @@ scene:
     entities:
       light.couch_corner:
         state: on
-        transition: 2
+        transition: 1
         brightness: 50
         color_temp: 370
         white_value: 255
       light.living_room_overhead:
         state: on
-        transition: 2
+        transition: 1
         brightness: 1
         color_temp: 370
         white_value: 255
-      switch.living_room_switch:
-        state: off
       switch.dining_room_light:
         state: off
   - name: Bedroom Day
@@ -241,43 +239,67 @@ scene:
       light.couch_corner:
         state: off
         transition: 0
-      switch.living_room_switch:
-        state: off
       switch.dining_room_light:
         state: off
   - name: Main Room On
     entities:
       light.living_room_overhead:
         state: on
-        transition: 2
+        transition: 1
         brightness: 255
         color_temp: 370
         white_value: 255
       light.couch_corner:
         state: on
-        transition: 2
+        transition: 1
         brightness: 153
         color_temp: 360
         white_value: 255
-      switch.living_room_switch:
-        state: on
       switch.dining_room_light:
         state: on
+  - name: Kitchen On
+    entities:
+      light.kitchen_range:
+        state: on
+        brightness: 255
+        color_temp: 317
+        transition: 0
+  - name: Kitchen Relax
+    entities:
+      switch.kitchen_switch:
+        state: on
+      light.kitchen_range:
+        state: off
+        transition: 0
+  - name: Kitchen Range
+    entities:
+      switch.kitchen_switch:
+        state: off
+      light.kitchen_range:
+        state: on
+        transition: 0
+        brightness: 255
+        color_temp: 317
+  - name: Kitchen Off
+    entities:
+      light.kitchen_range:
+        state: off
+        transition: 0
   - name: Main Room Relax
     entities:
       light.couch_corner:
         state: on
-        transition: 2
+        transition: 1
         brightness: 255
         color_temp: 370
         white_value: 255
       light.living_room_overhead:
         state: on
-        transition: 2
+        transition: 1
         brightness: 75
         color_temp: 370
         white_value: 255
-      switch.living_room_switch:
+      switch.dining_room_light:
         state: off
   - name: Desk
     entities:
@@ -294,250 +316,4 @@ input_boolean:
     initial: on
     icon: mdi:cellphone-iphone
 
-automation:
-  - alias: guest_bedroom_hue_tap_on
-    trigger:
-      - platform: mqtt
-        topic: hue/guest_bedroom_switch/buttonevent 
-        payload: '1002'
-    action:
-      - service: switch.turn_on
-        entity_id: switch.guest_bedroom_lamp
-  - alias: guest_bedroom_hue_tap_off
-    trigger:
-      - platform: mqtt
-        topic: hue/guest_bedroom_switch/buttonevent
-        payload: '4002'
-    action:
-      - service: switch.turn_off
-        entity_id: switch.guest_bedroom_lamp
-  - alias: 'Nobody Home'
-    condition:
-      condition: and
-      conditions:
-      - condition: state
-        entity_id: input_boolean.someonehome
-        state: 'on'
-      - condition: state
-        entity_id: binary_sensor.living_room_occupancy
-        state: 'off'
-      - condition: state
-        entity_id: binary_sensor.my_ecobee3_occupancy
-        state: 'off'
-    trigger:
-      - platform: state
-        entity_id: group.all_devices
-        to: 'not_home'
-        for:
-          minutes: 10
-    action:
-      - service: homeassistant.turn_off
-        entity_id: input_boolean.someonehome
-  - alias: 'Someone Home'
-    condition:
-      condition: state
-      entity_id: input_boolean.someonehome
-      state: 'off'
-    trigger:
-      - platform: state
-        entity_id: device_tracker.kit_android
-        to: 'home'
-      - platform: state
-        entity_id: device_tracker.april_android
-        to: 'home'
-      - platform: state
-        entity_id: binary_sensor.living_room_occupancy
-        to: 'on'
-      - platform: state
-        entity_id: binary_sensor.my_ecobee3_occupancy
-        to: 'on'
-    action:
-      - service: homeassistant.turn_on
-        entity_id: input_boolean.someonehome
-  - alias: "Living Room On"
-    trigger:
-      platform: state
-      entity_id: switch.living_room_switch
-      to: 'on'
-    action:
-      service: scene.turn_on
-      entity_id: scene.main_room_on
-  - alias: "Living Room Off"
-    trigger:
-      platform: state
-      entity_id: switch.living_room_switch
-      to: 'off'
-    condition:
-      condition: template
-      value_template: "{% if not is_state('media_player.kodi', 'playing') %}true{% endif %}"
-    action:
-      service: scene.turn_on
-      entity_id: scene.main_room_off
-  - alias: "Movie time"
-    trigger:
-      platform: state
-      entity_id: media_player.kodi
-      to: 'playing'
-    condition:
-      condition: and
-      conditions:
-        - condition: state
-          entity_id: sun.sun
-          state: 'below_horizon'
-        - condition: template
-          value_template: '{{ states.media_player.kodi.attributes.media_content_type == "movie" }}'
-        - condition: state
-          entity_id: light.couch_corner
-          state: "on"
-    action:
-      service: scene.turn_on
-      entity_id: scene.movie
-  - alias: "Movie time off"
-    trigger:
-      platform: state
-      entity_id: media_player.kodi
-      from: 'playing'
-      to: 'idle'
-    condition:
-      condition: and
-      conditions:
-        - condition: state
-          entity_id: sun.sun
-          state: 'below_horizon'
-    action:
-      service: scene.turn_on
-      entity_id: scene.main_room_on
-  - alias: "Bedroom Turn On"
-    trigger:
-      - platform: event
-        event_type: flic_click
-        event_data:
-          button_name: flic_80e4da719b3e
-          click_type: single
-      - platform: event
-        event_type: flic_click
-        event_data:
-          button_name: flic_80e4da72aaa9
-          click_type: single
-    condition:
-      condition: and
-      conditions:
-      - condition: state
-        entity_id: light.bedroom
-        state: "off"
-    action:
-      service: light.turn_on
-      entity_id: light.bedroom
-  - alias: "Bedroom Turn Off"
-    trigger:
-      - platform: event
-        event_type: flic_click
-        event_data:
-          button_name: flic_80e4da719b3e
-          click_type: single
-      - platform: event
-        event_type: flic_click
-        event_data:
-          button_name: flic_80e4da72aaa9
-          click_type: single
-    condition:
-      condition: and
-      conditions:
-      - condition: state
-        entity_id: light.bedroom
-        state: "on"
-    action:
-      service: light.turn_off
-      entity_id: light.bedroom
-  - alias: "Bedroom Dim"
-    trigger:
-      - platform: event
-        event_type: flic_click
-        event_data:
-          button_name: flic_80e4da719b3e
-          click_type: double
-      - platform: event
-        event_type: flic_click
-        event_data:
-          button_name: flic_80e4da72aaa9
-          click_type: double
-      - platform: mqtt
-        topic: hue/bed_dimmer/buttonevent 
-        payload: '3003'
-    condition:
-      condition: and
-      conditions:
-      - condition: numeric_state
-        entity_id: light.bedroom
-        value_template: '{% if is_state("light.bedroom", "on") %}{{ states.light.bedroom.attributes.brightness }}{% else %}0{% endif %}'
-        above: 128
-    action:
-      service: scene.turn_on
-      entity_id: scene.bedroom_dim
-  - alias: "Bedroom Brighten Night"
-    trigger:
-      - platform: event
-        event_type: flic_click
-        event_data:
-          button_name: flic_80e4da719b3e
-          click_type: double
-      - platform: event
-        event_type: flic_click
-        event_data:
-          button_name: flic_80e4da72aaa9
-          click_type: double
-      - platform: mqtt
-        topic: hue/bed_dimmer/buttonevent 
-        payload: '2003'
-    condition:
-      - condition: numeric_state
-        entity_id: light.bedroom
-        value_template: '{% if is_state("light.bedroom", "on") %}{{ states.light.bedroom.attributes.brightness }}{% else %}0{% endif %}'
-        below: 127
-      - condition: state
-        entity_id: sun.sun
-        state: 'below_horizon'
-    action:
-      service: scene.turn_on
-      entity_id: scene.bedroom_night
-  - alias: "Bedroom Brighten Day"
-    trigger:
-      - platform: event
-        event_type: flic_click
-        event_data:
-          button_name: flic_80e4da719b3e
-          click_type: double
-      - platform: event
-        event_type: flic_click
-        event_data:
-          button_name: flic_80e4da72aaa9
-          click_type: double
-      - platform: mqtt
-        topic: hue/bed_dimmer/buttonevent 
-        payload: '2003'
-    condition:
-      - condition: numeric_state
-        entity_id: light.bedroom
-        value_template: '{% if states.light_bedroom == "on"  %}{{ states.light_bedroom.attributes.brightness }}{% else %}0{% endif %}'
-        below: 127
-      - condition: state
-        entity_id: sun.sun
-        state: 'above_horizon'
-    action:
-      service: scene.turn_on
-      entity_id: scene.bedroom_day
-  - alias: "Lights off"
-    trigger:
-      - platform: event
-        event_type: flic_click
-        event_data:
-          button_name: flic_80e4da719b3e
-          click_type: hold
-      - platform: event
-        event_type: flic_click
-        event_data:
-          button_name: flic_80e4da72aaa9
-          click_type: hold
-    action:
-      service: homeassistant.turn_off
-      entity_id: group.living_room
+automation: !include automation.yaml

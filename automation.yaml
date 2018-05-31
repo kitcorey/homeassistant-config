@@ -1,0 +1,430 @@
+- alias: guest_bedroom_hue_tap_on
+  trigger:
+    - platform: mqtt
+      topic: hue/guest_bedroom_switch/buttonevent
+      payload: '1002'
+  action:
+    - service: switch.turn_on
+      entity_id: switch.guest_bedroom_lamp
+- alias: guest_bedroom_hue_tap_off
+  trigger:
+    - platform: mqtt
+      topic: hue/guest_bedroom_switch/buttonevent
+      payload: '4002'
+  action:
+    - service: switch.turn_off
+      entity_id: switch.guest_bedroom_lamp
+- alias: 'Nobody Home'
+  condition:
+    condition: and
+    conditions:
+    - condition: state
+      entity_id: input_boolean.someonehome
+      state: 'on'
+    - condition: state
+      entity_id: binary_sensor.living_room_occupancy
+      state: 'off'
+    - condition: state
+      entity_id: binary_sensor.my_ecobee3_occupancy
+      state: 'off'
+  trigger:
+    - platform: state
+      entity_id: group.all_devices
+      to: 'not_home'
+      for:
+        minutes: 10
+  action:
+    - service: homeassistant.turn_off
+      entity_id: input_boolean.someonehome
+- alias: 'Someone Home'
+  condition:
+    condition: state
+    entity_id: input_boolean.someonehome
+    state: 'off'
+  trigger:
+    - platform: state
+      entity_id: device_tracker.kit_android
+      to: 'home'
+    - platform: state
+      entity_id: device_tracker.april_android
+      to: 'home'
+    - platform: state
+      entity_id: binary_sensor.living_room_occupancy
+      to: 'on'
+    - platform: state
+      entity_id: binary_sensor.my_ecobee3_occupancy
+      to: 'on'
+  action:
+    - service: homeassistant.turn_on
+      entity_id: input_boolean.someonehome
+- alias: "Living Room On"
+  trigger:
+    platform: state
+    entity_id: switch.living_room_switch
+    to: 'on'
+  action:
+    service: scene.turn_on
+    entity_id: scene.main_room_on
+- alias: "Living Room Off"
+  trigger:
+    platform: state
+    entity_id: switch.living_room_switch
+    to: 'off'
+  condition:
+    condition: template
+    value_template: "{% if not is_state('media_player.kodi', 'playing') %}true{% endif %}"
+  action:
+    service: scene.turn_on
+    entity_id: scene.main_room_off
+- alias: "Movie time"
+  trigger:
+    platform: state
+    entity_id: media_player.kodi
+    to: 'playing'
+  condition:
+    condition: and
+    conditions:
+      - condition: state
+        entity_id: sun.sun
+        state: 'below_horizon'
+      - condition: template
+        value_template: '{{ states.media_player.kodi.attributes.media_content_type == "movie" }}'
+      - condition: state
+        entity_id: light.couch_corner
+        state: "on"
+  action:
+    service: scene.turn_on
+    entity_id: scene.movie
+- alias: "Movie time off"
+  trigger:
+    platform: state
+    entity_id: media_player.kodi
+    from: 'playing'
+  condition:
+    condition: and
+    conditions:
+      - condition: state
+        entity_id: sun.sun
+        state: 'below_horizon'
+  action:
+    service: scene.turn_on
+    entity_id: scene.main_room_on
+- alias: "Bedroom Turn On"
+  trigger:
+    - platform: event
+      event_type: flic_click
+      event_data:
+        button_name: flic_80e4da719b3e
+        click_type: single
+    - platform: event
+      event_type: flic_click
+      event_data:
+        button_name: flic_80e4da72aaa9
+        click_type: single
+  condition:
+    condition: and
+    conditions:
+    - condition: state
+      entity_id: light.bedroom
+      state: "off"
+  action:
+    service: light.turn_on
+    entity_id: light.bedroom
+- alias: "Bedroom Turn Off"
+  trigger:
+    - platform: event
+      event_type: flic_click
+      event_data:
+        button_name: flic_80e4da719b3e
+        click_type: single
+    - platform: event
+      event_type: flic_click
+      event_data:
+        button_name: flic_80e4da72aaa9
+        click_type: single
+  condition:
+    condition: and
+    conditions:
+    - condition: state
+      entity_id: light.bedroom
+      state: "on"
+  action:
+    service: light.turn_off
+    entity_id: light.bedroom
+- alias: "Bedroom Dim"
+  trigger:
+    - platform: event
+      event_type: flic_click
+      event_data:
+        button_name: flic_80e4da719b3e
+        click_type: double
+    - platform: event
+      event_type: flic_click
+      event_data:
+        button_name: flic_80e4da72aaa9
+        click_type: double
+    - platform: mqtt
+      topic: hue/bed_dimmer/buttonevent
+      payload: '3003'
+  condition:
+    condition: and
+    conditions:
+    - condition: numeric_state
+      entity_id: light.bedroom
+      value_template: '{% if is_state("light.bedroom", "on") %}{{ states.light.bedroom.attributes.brightness }}{% else %}0{% endif %}'
+      above: 128
+  action:
+    service: scene.turn_on
+    entity_id: scene.bedroom_dim
+- alias: "Bedroom Brighten Night"
+  trigger:
+    - platform: event
+      event_type: flic_click
+      event_data:
+        button_name: flic_80e4da719b3e
+        click_type: double
+    - platform: event
+      event_type: flic_click
+      event_data:
+        button_name: flic_80e4da72aaa9
+        click_type: double
+    - platform: mqtt
+      topic: hue/bed_dimmer/buttonevent
+      payload: '2003'
+  condition:
+    - condition: numeric_state
+      entity_id: light.bedroom
+      value_template: '{% if is_state("light.bedroom", "on") %}{{ states.light.bedroom.attributes.brightness }}{% else %}0{% endif %}'
+      below: 127
+    - condition: state
+      entity_id: sun.sun
+      state: 'below_horizon'
+  action:
+    service: scene.turn_on
+    entity_id: scene.bedroom_night
+- alias: "Bedroom Brighten Day"
+  trigger:
+    - platform: event
+      event_type: flic_click
+      event_data:
+        button_name: flic_80e4da719b3e
+        click_type: double
+    - platform: event
+      event_type: flic_click
+      event_data:
+        button_name: flic_80e4da72aaa9
+        click_type: double
+    - platform: mqtt
+      topic: hue/bed_dimmer/buttonevent
+      payload: '2003'
+  condition:
+    - condition: numeric_state
+      entity_id: light.bedroom
+      value_template: '{% if states.light_bedroom == "on"  %}{{ states.light_bedroom.attributes.brightness }}{% else %}0{% endif %}'
+      below: 127
+    - condition: state
+      entity_id: sun.sun
+      state: 'above_horizon'
+  action:
+    service: scene.turn_on
+    entity_id: scene.bedroom_day
+- alias: "Lights off"
+  trigger:
+    - platform: event
+      event_type: flic_click
+      event_data:
+        button_name: flic_80e4da719b3e
+        click_type: hold
+    - platform: event
+      event_type: flic_click
+      event_data:
+        button_name: flic_80e4da72aaa9
+        click_type: hold
+  action:
+    service: homeassistant.turn_off
+    entity_id: group.living_room
+- id: hold_off_living_room
+  alias: 'Hold off living room'
+  hide_entity: True
+  trigger:
+    - platform: event
+      event_type: zwave.scene_activated
+      event_data:
+        entity_id: zwave.living_room_switch
+        scene_id: 2
+        scene_data: 7800
+  action:
+    - service: homeassistant.turn_off
+      entity_id: group.all_lights
+    - service: switch.turn_off
+      entity_id: switch.guest_bedroom_lamp
+    - service: switch.turn_off
+      entity_id: switch.dining_room_light
+    - service: switch.turn_off
+      entity_id: switch.kitchen_switch
+- id: double_tap_on_living_room
+  alias: 'Double tap on living room'
+  hide_entity: True
+  trigger:
+    - platform: event
+      event_type: zwave.scene_activated
+      event_data:
+        entity_id: zwave.living_room_switch
+        scene_id: 1
+        scene_data: 7860
+  action:
+    service: scene.turn_on
+    entity_id: scene.main_room_relax
+- id: triple_tap_on_living_room
+  alias: 'Triple tap on living room'
+  hide_entity: True
+  trigger:
+    - platform: event
+      event_type: zwave.scene_activated
+      event_data:
+        entity_id: zwave.living_room_switch
+        scene_id: 1
+        scene_data: 7920
+  action:
+    service: scene.turn_on
+    entity_id: scene.movie
+- id: single_tap_on_kitchen
+  alias: 'Single tap on kitchen'
+  hide_entity: True
+  trigger:
+    - platform: event
+      event_type: zwave.scene_activated
+      event_data:
+        entity_id: zwave.kitchen_switch
+        scene_id: 1
+        scene_data: 0
+  action:
+    service: scene.turn_on
+    entity_id: scene.kitchen_on
+- id: double_tap_on_kitchen
+  alias: 'Double tap on kitchen'
+  hide_entity: True
+  trigger:
+    - platform: event
+      event_type: zwave.scene_activated
+      event_data:
+        entity_id: zwave.kitchen_switch
+        scene_id: 1
+        scene_data: 3
+  action:
+    service: scene.turn_on
+    entity_id: scene.kitchen_relax
+- id: triple_tap_on_kitchen
+  alias: 'Triple tap on kitchen'
+  hide_entity: True
+  trigger:
+    - platform: event
+      event_type: zwave.scene_activated
+      event_data:
+        entity_id: zwave.kitchen_switch
+        scene_id: 1
+        scene_data: 4
+  action:
+    service: scene.turn_on
+    entity_id: scene.kitchen_range
+- id: single_tap_off_kitchen
+  alias: 'single tap off kitchen'
+  hide_entity: True
+  trigger:
+    - platform: event
+      event_type: zwave.scene_activated
+      event_data:
+        entity_id: zwave.kitchen_switch
+        scene_id: 2
+        scene_data: 0
+  action:
+    service: scene.turn_on
+    entity_id: scene.kitchen_off
+- id: double_tap_off_kitchen
+  alias: 'double tap off kitchen'
+  hide_entity: True
+  trigger:
+    - platform: event
+      event_type: zwave.scene_activated
+      event_data:
+        entity_id: zwave.kitchen_switch
+        scene_id: 2
+        scene_data: 3
+  action:
+    service: scene.turn_on
+    entity_id: scene.kitchen_range
+##
+# These are used so the light can still be used to turn on an off lights, even if
+# it's actual state is out of sync with the state of the scene.
+#
+# For example,
+# The main room relax scene was activated without using the switch.  The swith is still
+# in the 'off' state, so we can't use it to turn on the main room with the other automation
+##
+- id: single_tap_on_living_room
+  alias: 'Single tap on living room'
+  hide_entity: True
+  trigger:
+    - platform: event
+      event_type: zwave.scene_activated
+      event_data:
+        entity_id: zwave.living_room_switch
+        scene_id: 1
+        scene_data: 7680
+  condition:
+    condition: state
+    entity_id: switch.living_room_switch
+    state: 'on'
+  action:
+    service: scene.turn_on
+    entity_id: scene.main_room_on
+- id: single_tap_off_living_room
+  alias: 'Single tap off living room'
+  hide_entity: True
+  trigger:
+    - platform: event
+      event_type: zwave.scene_activated
+      event_data:
+        entity_id: zwave.living_room_switch
+        scene_id: 2
+        scene_data: 7680
+  condition:
+    condition: state
+    entity_id: switch.living_room_switch
+    state: 'off'
+  action:
+    service: scene.turn_on
+    entity_id: scene.main_room_off
+#- id: hold_on_living_room
+#  alias: 'Hold on living room'
+#  hide_entity: True
+#  trigger:
+#    - platform: event
+#      event_type: zwave.scene_activated
+#      event_data:
+#        entity_id: zwave.living_room_switch
+#        scene_id: 2
+#        scene_data: 7800
+#  action:
+#    service: homeassistant.turn_off
+#    entity_id: group.living_room
+#- id: double_tap_off_living_room
+#  alias: 'Double tap off living room'
+#  hide_entity: True
+#  trigger:
+#    - platform: event
+#      event_type: zwave.scene_activated
+#      event_data:
+#        entity_id: zwave.living_room_switch
+#        scene_id: 2
+#        scene_data: 7860
+#- id: triple_tap_off_living_room
+#  alias: 'Triple tap off living room'
+#  hide_entity: True
+#  trigger:
+#    - platform: event
+#      event_type: zwave.scene_activated
+#      event_data:
+#        entity_id: zwave.living_room_switch
+#        scene_id: 2
+#        scene_data: 7920
