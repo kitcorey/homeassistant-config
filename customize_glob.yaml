@@ -1,0 +1,4 @@
+"automation.*":
+  hidden: true
+"script.*":
+  hidden: true
