@@ -1,0 +1,7 @@
+- platform: generic
+  still_image_url: !secret ipcamera_url
+  username: !secret ipcamera_username
+  password: !secret ipcamera_password
+  name: kitchen
+  verify_ssl: false
+  framerate: 1
