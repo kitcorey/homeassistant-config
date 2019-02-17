@@ -241,8 +241,12 @@
         button_name: flic_80e4da72aaa9
         click_type: hold
   action:
-    service: homeassistant.turn_off
-    entity_id: group.living_room
+    - service: homeassistant.turn_off
+      entity_id: group.living_room
+    - service: switch.turn_off
+      entity_id: switch.kitchen_switch
+    - service: scene.turn_on
+      entity_id: scene.kitchen_off
 - id: hold_off_living_room
   alias: 'Hold off living room'
   hide_entity: True
