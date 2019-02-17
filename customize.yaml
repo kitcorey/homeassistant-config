@@ -6,10 +6,26 @@ binary_sensor.flic_80e4da72aaa9:
   entity_picture: /local/flic-white-192x192.png
 switch.living_room_switch:
   friendly_name: Living Room Switch
-zwave.homeseer_hsws100_wall_switch:
+zwave.living_room_switch:
   friendly_name: Living Room Switch
-switch.switch:
+  node_name: living_room_switch
+switch.kitchen_switch:
   friendly_name: Kitchen Switch
-zwave.homeseer_hsws100_wall_switch_2:
+zwave.kitchen_switch:
   friendly_name: Kitchen Switch
-
+light.kitchen_range_cree:
+  hidden: true
+light.hallway_1_cree:
+  hidden: true
+light.front_door_cree:
+  hidden: true
+light.main_room:
+  hidden: true
+light.dimmer_2:
+  hidden: true
+camera.dafang_motion_snapshot:
+  hidden: true
+group.all_lights:
+  hidden: false
+light.bedroom_headboard:
+  friendly_name: Bedroom Headboard

@@ -2,3 +2,12 @@
   hidden: true
 "script.*":
   hidden: true
+"light.front_door_cree":
+  hidden: true
+"light.hallway_1_cree":
+  hidden: true
+"light.kitchen_range_cree":
+  hidden: true
+"light.guest_bedroom":
+  hidden: true
+
