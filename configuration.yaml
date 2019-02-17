@@ -56,10 +56,9 @@ switch:
     enable_leds: false
 
 http:
-  # Uncomment this to add a password (recommended!)
-  # api_password: PASSWORD
-  # Uncomment this if you are using SSL or running in Docker etc
-  # base_url: example.duckdns.org:8123
+  server_port: !secret server_port
+  ssl_certificate: !secret server_certificate
+  ssl_key: !secret server_key
 
 # Checks for available updates
 updater:
@@ -121,8 +120,11 @@ mqtt:
     client_id: home-assistant-1
     keepalive: 60
     protocol: 3.1
-    username: kit
+    username: !secret mqtt_username
     password: !secret mqtt_password
+    discovery: true
+    discovery_prefix: homeassistant
+
 
 device_tracker:
   - platform: owntracks
@@ -131,6 +133,15 @@ device_tracker:
     host: !secret router_ip
     community: !secret snmp_community
     baseoid: !secret snmp_baseoid
+  - platform: unifi
+    host: !secret unifi_ip
+    username: !secret unifi_username
+    password: !secret unifi_password
+    verify_ssl: !secret unifi_ca
+    ssid_filter:
+      - !secret unifi_ssid
+
+wake_on_lan:
 
 # Example configuration.yaml entry
 media_player:
@@ -141,17 +152,33 @@ media_player:
   - platform: denon
     host: !secret denon_ip
     name: Denon
+  - platform: webostv
+    host: !secret tv_ip
+    turn_on_action:
+      service: wake_on_lan.send_magic_packet
+      data:
+        mac: !secret tv_mac
+    customize:
+      sources:
+        - hdmi2
+        - netflix
+        - hulu
+        - livetv
+        - youtube
 
 # Example configuration.yaml entry
-#ecobee:
-#  api_key: !secret ecobee_api_key
+ecobee:
+  api_key: !secret ecobee_api_key
 
 hue:
   bridges:
     - host: !secret hue_ip
 
-light:
-  - platform: lifx
+lifx:
+  light:
+
+ffmpeg:
+  ffmpeg_bin: /usr/local/bin/ffmpeg
 
 # Add custom zones
 zone 1:
@@ -174,12 +201,34 @@ zone 3:
   icon: mdi:home
 
 logger:
-  default: warn
+  default: info
   #logs:
-    #homeassistant.components.light.lifx: debug
+    #homeassistant.components.device_tracker: debug
     #homeassistant.components.switch.flux: info
 
 group:
+  #default_view:
+  #  name: Main
+  #  view: yes
+  #  entities:
+  #    - group.all_automations
+  #    - group.all_scenes
+  #    - group.all_lights
+  #    - group.all_sensors
+  #    - device_tracker.april_android
+  #    - device_tracker.kit_android
+  #    - binary_sensor.living_room_occupancy
+  #      #- binary_sensor.my_ecobee3_occupancy
+  #    - binary_sensor.guest_bedroom_occupancy
+  #    - binary_sensor.bedroom_occupancy
+  #    - sensor.living_room_temperature
+  #      #- sensor.my_ecobee3_humidity
+  #    - sensor.dark_sky_summary
+  #    - media_player.kodi
+  #    - media_player.denon_avrx2000
+  #    - media_player.lg_webos_smart_tv
+  #      #- climate.my_ecobee3
+  #      #- weather.my_ecobee3
   living_room:
     name: Living Room
     icon: mdi:sofa
@@ -190,6 +239,29 @@ group:
       - light.living_room_overhead
       - switch.dining_room_light
       - switch.living_room_switch
+  ipcamera:
+    name: Camera
+    view: yes
+    icon: mdi:cctv
+    entities:
+      - camera.kitchen
+      - switch.dafang_h264_rtsp_server
+      - switch.dafang_mjpeg_rtsp_server
+      - sensor.dafang
+      - device_tracker.dafang3
+      - sensor.dafang_light_sensor
+      - switch.dafang_ir_filter
+      - switch.dafang_ir_led
+      - switch.dafang_night_mode
+      - switch.dafang_night_mode_auto
+      - switch.dafang_blue_led
+      - switch.dafang_yellow_led
+      - switch.dafang_motion_detection
+      - switch.dafang_motion_tracking
+      - camera.dafang_motion_snapshot
+      - binary_sensor.dafang_motion_sensor
+      - cover.dafang_move_leftright
+      - cover.dafang_move_updown
 
 scene:
   - name: Movie
@@ -317,4 +389,24 @@ input_boolean:
     initial: on
     icon: mdi:cellphone-iphone
 
+light:
+  - name: bedroom_headboard
+    platform: mqtt
+    state_topic: ESPURNA-6F9708/relay/0
+    command_topic: ESPURNA-6F9708/relay/0/set
+    payload_on: 1
+    payload_off: 0
+    availability_topic: ESPURNA-6F9708/status
+    payload_available: 1
+    payload_not_available: 0
+    brightness_state_topic: ESPURNA-6F9708/brightness
+    brightness_command_topic: ESPURNA-6F9708/brightness/set
+    rgb_state_topic: ESPURNA-6F9708/rgb
+    rgb_command_topic: ESPURNA-6F9708/rgb/set
+    color_temp_command_topic: ESPURNA-6F9708/mired/set
+    white_value_state_topic: ESPURNA-6F9708/channel/3
+    white_value_command_topic: ESPURNA-6F9708/channel/3/set
+
 automation: !include automation.yaml
+camera: !include cameras.yaml
+script: !include scripts.yaml
