@@ -1,4 +1,5 @@
-- alias: guest_bedroom_hue_tap_on
+- id: guest_bedroom_hue_tap_on
+  alias: "Guest bedroom hue tap on"
   trigger:
     - platform: mqtt
       topic: hue/guest_bedroom_switch/buttonevent
@@ -6,7 +7,8 @@
   action:
     - service: switch.turn_on
       entity_id: switch.guest_bedroom_lamp
-- alias: guest_bedroom_hue_tap_off
+- id: guest_bedroom_hue_tap_off
+  alias: guest_bedroom_hue_tap_off
   trigger:
     - platform: mqtt
       topic: hue/guest_bedroom_switch/buttonevent
@@ -14,7 +16,8 @@
   action:
     - service: switch.turn_off
       entity_id: switch.guest_bedroom_lamp
-- alias: 'Nobody Home'
+- id: nobody_home
+  alias: 'Nobody Home'
   condition:
     condition: and
     conditions:
@@ -36,7 +39,8 @@
   action:
     - service: homeassistant.turn_off
       entity_id: input_boolean.someonehome
-- alias: 'Someone Home'
+- id: someone_home
+  alias: 'Someone Home'
   condition:
     condition: state
     entity_id: input_boolean.someonehome
@@ -57,7 +61,52 @@
   action:
     - service: homeassistant.turn_on
       entity_id: input_boolean.someonehome
-- alias: "Living Room On"
+- id: only_kit_home
+  alias: 'Only Kit Home'
+  condition:
+    condition: and
+    conditions:
+    - condition: state
+      entity_id: input_boolean.someonehome
+      state: 'on'
+    - condition: state
+      entity_id: climate.my_ecobee
+      state: 'Home'
+  trigger:
+    - platform: state
+      entity_id: device_tracker.april_android
+      to: 'not_home'
+      for:
+        minutes: 10
+  action:
+    - service: climate.set_hold_mode
+      entity_id: climate.my_ecobee
+      data:
+        hold_mode: 'away'
+- id: april_home
+  alias: 'April Home'
+  condition:
+    condition: and
+    conditions:
+    - condition: state
+      entity_id: input_boolean.someonehome
+      state: 'on'
+    - condition: state
+      entity_id: climate.my_ecobee
+      state: "Away"
+  trigger:
+    - platform: state
+      entity_id: device_tracker.april_android
+      to: 'home'
+      for:
+        minutes: 10
+  action:
+    - service: climate.set_hold_mode
+      entity_id: climate.my_ecobee
+      data:
+        hold_mode: 'home'
+- id: living_room_on
+  alias: "Living Room On"
   trigger:
     platform: state
     entity_id: switch.living_room_switch
@@ -65,7 +114,8 @@
   action:
     service: scene.turn_on
     entity_id: scene.main_room_on
-- alias: "Living Room Off"
+- id: living_room_off
+  alias: "Living Room Off"
   trigger:
     platform: state
     entity_id: switch.living_room_switch
@@ -76,7 +126,8 @@
   action:
     service: scene.turn_on
     entity_id: scene.main_room_off
-- alias: "Movie time"
+- id: movie_time
+  alias: "Movie time"
   trigger:
     platform: state
     entity_id: media_player.kodi
@@ -95,7 +146,8 @@
   action:
     service: scene.turn_on
     entity_id: scene.movie
-- alias: "Movie time off"
+- id: movie_time_off
+  alias: "Movie time off"
   trigger:
     platform: state
     entity_id: media_player.kodi
@@ -109,7 +161,8 @@
   action:
     service: scene.turn_on
     entity_id: scene.main_room_on
-- alias: "Bedroom Turn On"
+- id: bedroom_turn_on
+  alias: "Bedroom Turn On"
   trigger:
     - platform: event
       event_type: flic_click
@@ -130,7 +183,8 @@
   action:
     service: light.turn_on
     entity_id: light.bedroom
-- alias: "Bedroom Turn Off"
+- id: bedroom_turn_off
+  alias: "Bedroom Turn Off"
   trigger:
     - platform: event
       event_type: flic_click
@@ -151,7 +205,8 @@
   action:
     service: light.turn_off
     entity_id: light.bedroom
-- alias: "Bedroom Dim"
+- id: bedroom_dim
+  alias: "Bedroom Dim"
   trigger:
     - platform: event
       event_type: flic_click
@@ -176,7 +231,8 @@
   action:
     service: scene.turn_on
     entity_id: scene.bedroom_dim
-- alias: "Bedroom Brighten Night"
+- id: bedroom_brighten_night
+  alias: "Bedroom Brighten Night"
   trigger:
     - platform: event
       event_type: flic_click
@@ -202,7 +258,8 @@
   action:
     service: scene.turn_on
     entity_id: scene.bedroom_night
-- alias: "Bedroom Brighten Day"
+- id: bedroom_brighten_day
+  alias: "Bedroom Brighten Day"
   trigger:
     - platform: event
       event_type: flic_click
@@ -228,7 +285,8 @@
   action:
     service: scene.turn_on
     entity_id: scene.bedroom_day
-- alias: "Lights off"
+- id: lights_off
+  alias: "Lights off"
   trigger:
     - platform: event
       event_type: flic_click
@@ -399,6 +457,13 @@
   action:
     service: scene.turn_on
     entity_id: scene.main_room_off
+- id: wake_up_light
+  alias: 'Wake Up Light'
+  trigger:
+    platform: mqtt
+    topic: light/wakeup
+  action:
+    service: script.sunrise
 #- id: hold_on_living_room
 #  alias: 'Hold on living room'
 #  hide_entity: True
