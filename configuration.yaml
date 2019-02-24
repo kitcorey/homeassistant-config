@@ -202,8 +202,10 @@ zone 3:
 
 logger:
   default: info
-  #logs:
-    #homeassistant.components.device_tracker: debug
+  logs:
+    #homeassistant.core: debug
+    #homeassistant.components.zwave: debug
+    #homeassistant.components.binary_sensor.flic: debug
     #homeassistant.components.switch.flux: info
 
 group:
@@ -270,13 +272,13 @@ scene:
         state: on
         transition: 1
         brightness: 50
-        color_temp: 370
+        kelvin: 2700
         white_value: 255
       light.living_room_overhead:
         state: on
         transition: 1
         brightness: 1
-        color_temp: 370
+        kelvin: 2700
         white_value: 255
       switch.dining_room_light:
         state: off
@@ -286,7 +288,7 @@ scene:
         state: on
         transition: 1
         brightness: 255
-        color_temp: 333
+        kelvin: 3003
         white_value: 255
   - name: Bedroom Dim
     entities:
@@ -294,7 +296,7 @@ scene:
         state: on
         transition: 1
         brightness: 55
-        color_temp: 333
+        kelvin: 3003
         white_value: 255
   - name: Bedroom Night
     entities:
@@ -302,7 +304,7 @@ scene:
         state: on
         transition: 1
         brightness: 200
-        color_temp: 370
+        kelvin: 2700
         white_value: 255
   - name: Main Room Off
     entities:
@@ -320,13 +322,13 @@ scene:
         state: on
         transition: 1
         brightness: 255
-        color_temp: 370
+        kelvin: 2700
         white_value: 255
       light.couch_corner:
         state: on
         transition: 1
         brightness: 153
-        color_temp: 360
+        kelvin: 2777
         white_value: 255
       switch.dining_room_light:
         state: on
@@ -335,7 +337,7 @@ scene:
       light.kitchen_range:
         state: on
         brightness: 255
-        color_temp: 317
+        kelvin: 3154
         transition: 0
   - name: Kitchen Relax
     entities:
@@ -352,7 +354,7 @@ scene:
         state: on
         transition: 0
         brightness: 255
-        color_temp: 317
+        kelvin: 3154
   - name: Kitchen Off
     entities:
       light.kitchen_range:
@@ -364,13 +366,13 @@ scene:
         state: on
         transition: 1
         brightness: 255
-        color_temp: 370
+        kelvin: 2700
         white_value: 255
       light.living_room_overhead:
         state: on
         transition: 1
         brightness: 75
-        color_temp: 370
+        kelvin: 2700
         white_value: 255
       switch.dining_room_light:
         state: off
@@ -380,7 +382,7 @@ scene:
         state: on
         transition: 2
         brightness: 255
-        color_temp: 370
+        kelvin: 2700
         white_value: 127
 
 input_boolean:
@@ -407,6 +409,6 @@ light:
     white_value_state_topic: ESPURNA-6F9708/channel/3
     white_value_command_topic: ESPURNA-6F9708/channel/3/set
 
-automation: !include automation.yaml
+automation: !include automations.yaml
 camera: !include cameras.yaml
 script: !include scripts.yaml
