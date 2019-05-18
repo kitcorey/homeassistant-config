@@ -8,34 +8,32 @@
         data:
           entity_id: light.bedroom_headboard
           rgb_color: [255,0,0]
-          brightness: 103
+          brightness: 100
       - delay:
-          seconds: 1.00
+          seconds: 30.00
       - service: homeassistant.turn_on
         data:
           entity_id: light.bedroom_headboard
           rgb_color: [255,62,0]
-          brightness: 103
-          transition: 103
+          brightness: 100
       - delay:
-          seconds: 15.00
+          seconds: 30.00
 
-      # light 2 dark warm orange to medium warm orange
+      # Increase dark warm orange brightness
+      - service: homeassistant.turn_on
+        data:
+          entity_id: light.bedroom_headboard
+          rgb_color: [255,62,0]
+          brightness: 100
+      - delay:
+          seconds: 30.00
       - service: homeassistant.turn_on
         data:
           entity_id: light.bedroom_headboard
           rgb_color: [249,123,0]
-          brightness: 1
+          brightness: 200
       - delay:
-          seconds: 1.00
-      - service: homeassistant.turn_on
-        data:
-          entity_id: light.bedroom_headboard
-          rgb_color: [249,123,0]
-          brightness: 103
-          transition: 15
-      - delay:
-          seconds: 15.00
+          seconds: 30.00
 
       # group medium warm orange to full bright
       - service: homeassistant.turn_on
@@ -43,6 +41,5 @@
           entity_id: light.bedroom_headboard
           rgb_color: [255,178,67]
           brightness: 255
-          transition: 30
       - delay:
           seconds: 30.00

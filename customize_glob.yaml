@@ -1,3 +1,5 @@
+"zwave.*":
+  hidden: true
 "automation.*":
   hidden: true
 "script.*":

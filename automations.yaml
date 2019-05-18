@@ -1,21 +1,3 @@
-- id: guest_bedroom_hue_tap_on
-  alias: "Guest bedroom hue tap on"
-  trigger:
-    - platform: mqtt
-      topic: hue/guest_bedroom_switch/buttonevent
-      payload: '1002'
-  action:
-    - service: switch.turn_on
-      entity_id: switch.guest_bedroom_lamp
-- id: guest_bedroom_hue_tap_off
-  alias: guest_bedroom_hue_tap_off
-  trigger:
-    - platform: mqtt
-      topic: hue/guest_bedroom_switch/buttonevent
-      payload: '4002'
-  action:
-    - service: switch.turn_off
-      entity_id: switch.guest_bedroom_lamp
 - id: nobody_home
   alias: 'Nobody Home'
   condition:
@@ -113,7 +95,7 @@
     to: 'on'
   action:
     service: scene.turn_on
-    entity_id: scene.main_room_on
+    entity_id: scene.living_room_on
 - id: living_room_off
   alias: "Living Room Off"
   trigger:
@@ -125,44 +107,121 @@
     value_template: "{% if not is_state('media_player.kodi', 'playing') %}true{% endif %}"
   action:
     service: scene.turn_on
-    entity_id: scene.main_room_off
-- id: movie_time
-  alias: "Movie time"
+    entity_id: scene.living_room_off
+- id: movie_time_kodi
+  alias: "Movie time kodi"
   trigger:
-    platform: state
-    entity_id: media_player.kodi
-    to: 'playing'
+    - platform: state
+      entity_id: media_player.kodi
+      to: 'playing'
   condition:
     condition: and
     conditions:
-      - condition: state
-        entity_id: sun.sun
-        state: 'below_horizon'
       - condition: template
         value_template: '{{ states.media_player.kodi.attributes.media_content_type == "movie" }}'
       - condition: state
         entity_id: light.couch_corner
         state: "on"
+      - condition: numeric_state
+        entity_id: light.couch_corner
+        value_template: '{% if is_state("light.couch_corner", "on") %}{{ states.light.couch_corner.attributes.brightness }}{% else %}0{% endif %}'
+        above: 128
   action:
     service: scene.turn_on
     entity_id: scene.movie
-- id: movie_time_off
-  alias: "Movie time off"
+- id: movie_time_flic_white
+  alias: "Movie time flic white"
   trigger:
-    platform: state
-    entity_id: media_player.kodi
-    from: 'playing'
+    - platform: event
+      event_type: flic_click
+      event_data:
+        button_name: flic_80e4da72aaa9
+        click_type: single
   condition:
     condition: and
     conditions:
       - condition: state
-        entity_id: sun.sun
-        state: 'below_horizon'
+        entity_id: light.couch_corner
+        state: "on"
+      - condition: numeric_state
+        entity_id: light.couch_corner
+        value_template: '{% if is_state("light.couch_corner", "on") %}{{ states.light.couch_corner.attributes.brightness }}{% else %}0{% endif %}'
+        above: 128
   action:
     service: scene.turn_on
-    entity_id: scene.main_room_on
-- id: bedroom_turn_on
-  alias: "Bedroom Turn On"
+    entity_id: scene.movie
+- id: movie_time_off_flic_white
+  alias: "Movie time off flic white"
+  trigger:
+    - platform: event
+      event_type: flic_click
+      event_data:
+        button_name: flic_80e4da72aaa9
+        click_type: single
+  condition:
+    condition: and
+    conditions:
+      - condition: state
+        entity_id: light.living_room_overhead
+        state: "on"
+      - condition: numeric_state
+        entity_id: light.living_room_overhead
+        value_template: '{% if is_state("light.living_room_overhead", "on") %}{{ states.light.living_room_overhead.attributes.brightness }}{% else %}0{% endif %}'
+        below: 128
+  action:
+    service: scene.turn_on
+    entity_id: scene.living_room_on
+- id: movie_time_off_kodi
+  alias: "Movie time off kodi"
+  trigger:
+    - platform: state
+      entity_id: media_player.kodi
+      from: 'playing'
+  condition:
+    condition: and
+    conditions:
+      - condition: state
+        entity_id: light.living_room_overhead
+        state: "on"
+      - condition: numeric_state
+        entity_id: light.living_room_overhead
+        value_template: '{% if is_state("light.living_room_overhead", "on") %}{{ states.light.liging_room_overhead.attributes.brightness }}{% else %}0{% endif %}'
+        below: 128
+  action:
+    service: scene.turn_on
+    entity_id: scene.living_room_on
+- id: flic_blue_office_off
+  alias: "flic blue office off"
+  trigger:
+    - platform: event
+      event_type: flic_click
+      event_data:
+        button_name: flic_80e4da719b3e
+        click_type: single
+  condition:
+    condition: state
+    entity_id: light.desk
+    state: 'on'
+  action:
+    - service: light.turn_off
+      entity_id: light.desk
+- id: flic_blue_office_on
+  alias: "flic blue office on"
+  trigger:
+    - platform: event
+      event_type: flic_click
+      event_data:
+        button_name: flic_80e4da719b3e
+        click_type: single
+  condition:
+    condition: state
+    entity_id: light.desk
+    state: 'off'
+  action:
+    - service: light.turn_on
+      entity_id: light.desk
+- id: flic_blue_email
+  alias: "flic blue email"
   trigger:
     - platform: event
       event_type: flic_click
@@ -172,161 +231,325 @@
     - platform: event
       event_type: flic_click
       event_data:
+        button_name: flic_80e4da719b3e
+        click_type: double
+    - platform: event
+      event_type: flic_click
+      event_data:
+        button_name: flic_80e4da719b3e
+        click_type: hold
+  action:
+    - service: notify.mail
+      data:
+        title: 'FLIC'
+        message: 'flic click blue'
+- id: flic_white_email
+  alias: "flic white email"
+  trigger:
+    - platform: event
+      event_type: flic_click
+      event_data:
         button_name: flic_80e4da72aaa9
         click_type: single
+    - platform: event
+      event_type: flic_click
+      event_data:
+        button_name: flic_80e4da72aaa9
+        click_type: double
+    - platform: event
+      event_type: flic_click
+      event_data:
+        button_name: flic_80e4da72aaa9
+        click_type: hold
+  action:
+    - service: notify.mail
+      data:
+        title: 'FLIC'
+        message: 'flic click white'
+- id: bedroom_turn_on
+  alias: "Bedroom Turn On"
+  trigger:
+    platform: mqtt
+    topic: 'zigbee2mqtt/0x00178801105ebab3'
   condition:
     condition: and
     conditions:
-    - condition: state
-      entity_id: light.bedroom
-      state: "off"
+    - condition: template
+      value_template: '{{ "on-press" == trigger.payload_json.action }}'
   action:
     service: light.turn_on
     entity_id: light.bedroom
 - id: bedroom_turn_off
   alias: "Bedroom Turn Off"
   trigger:
-    - platform: event
-      event_type: flic_click
-      event_data:
-        button_name: flic_80e4da719b3e
-        click_type: single
-    - platform: event
-      event_type: flic_click
-      event_data:
-        button_name: flic_80e4da72aaa9
-        click_type: single
+    platform: mqtt
+    topic: 'zigbee2mqtt/0x00178801105ebab3'
   condition:
     condition: and
     conditions:
-    - condition: state
-      entity_id: light.bedroom
-      state: "on"
+    - condition: template
+      value_template: '{{ "off-press" == trigger.payload_json.action }}'
   action:
-    service: light.turn_off
-    entity_id: light.bedroom
+    - service: light.turn_off
+      entity_id: light.bedroom
+    - service: light.turn_off
+      entity_id: light.bedroom_headboard
 - id: bedroom_dim
   alias: "Bedroom Dim"
   trigger:
-    - platform: event
-      event_type: flic_click
-      event_data:
-        button_name: flic_80e4da719b3e
-        click_type: double
-    - platform: event
-      event_type: flic_click
-      event_data:
-        button_name: flic_80e4da72aaa9
-        click_type: double
-    - platform: mqtt
-      topic: hue/bed_dimmer/buttonevent
-      payload: '3003'
+    platform: mqtt
+    topic: 'zigbee2mqtt/0x00178801105ebab3'
   condition:
     condition: and
     conditions:
-    - condition: numeric_state
-      entity_id: light.bedroom
-      value_template: '{% if is_state("light.bedroom", "on") %}{{ states.light.bedroom.attributes.brightness }}{% else %}0{% endif %}'
-      above: 128
+    - condition: template
+      value_template: '{{ "down-press" == trigger.payload_json.action }}'
   action:
     service: scene.turn_on
     entity_id: scene.bedroom_dim
 - id: bedroom_brighten_night
   alias: "Bedroom Brighten Night"
   trigger:
-    - platform: event
-      event_type: flic_click
-      event_data:
-        button_name: flic_80e4da719b3e
-        click_type: double
-    - platform: event
-      event_type: flic_click
-      event_data:
-        button_name: flic_80e4da72aaa9
-        click_type: double
-    - platform: mqtt
-      topic: hue/bed_dimmer/buttonevent
-      payload: '2003'
+    platform: mqtt
+    topic: 'zigbee2mqtt/0x00178801105ebab3'
   condition:
-    - condition: numeric_state
-      entity_id: light.bedroom
-      value_template: '{% if is_state("light.bedroom", "on") %}{{ states.light.bedroom.attributes.brightness }}{% else %}0{% endif %}'
-      below: 127
-    - condition: state
-      entity_id: sun.sun
-      state: 'below_horizon'
+    condition: and
+    conditions:
+      - condition: template
+        value_template: '{{ "up-press" == trigger.payload_json.action }}'
+      - condition: state
+        entity_id: sun.sun
+        state: 'below_horizon'
   action:
     service: scene.turn_on
     entity_id: scene.bedroom_night
 - id: bedroom_brighten_day
   alias: "Bedroom Brighten Day"
   trigger:
-    - platform: event
-      event_type: flic_click
-      event_data:
-        button_name: flic_80e4da719b3e
-        click_type: double
-    - platform: event
-      event_type: flic_click
-      event_data:
-        button_name: flic_80e4da72aaa9
-        click_type: double
-    - platform: mqtt
-      topic: hue/bed_dimmer/buttonevent
-      payload: '2003'
+    platform: mqtt
+    topic: 'zigbee2mqtt/0x00178801105ebab3'
   condition:
-    - condition: numeric_state
-      entity_id: light.bedroom
-      value_template: '{% if states.light_bedroom == "on"  %}{{ states.light_bedroom.attributes.brightness }}{% else %}0{% endif %}'
-      below: 127
-    - condition: state
-      entity_id: sun.sun
-      state: 'above_horizon'
+    condition: and
+    conditions:
+      - condition: template
+        value_template: '{{ "up-press" == trigger.payload_json.action }}'
+      - condition: state
+        entity_id: sun.sun
+        state: 'above_horizon'
   action:
     service: scene.turn_on
     entity_id: scene.bedroom_day
 - id: lights_off
   alias: "Lights off"
   trigger:
-    - platform: event
-      event_type: flic_click
-      event_data:
-        button_name: flic_80e4da719b3e
-        click_type: hold
-    - platform: event
-      event_type: flic_click
-      event_data:
-        button_name: flic_80e4da72aaa9
-        click_type: hold
+    platform: mqtt
+    topic: 'zigbee2mqtt/0x00178801105ebab3'
+  condition:
+    condition: and
+    conditions:
+      - condition: template
+        value_template: '{{ "off-hold" == trigger.payload_json.action }}'
   action:
     - service: homeassistant.turn_off
       entity_id: group.living_room
     - service: switch.turn_off
       entity_id: switch.kitchen_switch
+    - service: switch.turn_off
+      entity_id: switch.office_switch
+    - service: switch.turn_off
+      entity_id: switch.living_room_switch
     - service: scene.turn_on
       entity_id: scene.kitchen_off
-- id: hold_off_living_room
-  alias: 'Hold off living room'
-  hide_entity: True
+- id: bedroom_turn_on_bedside
+  alias: "Bedroom Turn On (Bedside)"
   trigger:
-    - platform: event
-      event_type: zwave.scene_activated
-      event_data:
-        entity_id: zwave.living_room_switch
-        scene_id: 2
-        scene_data: 7800
+    platform: mqtt
+    topic: 'zigbee2mqtt/0x00178801020f7d36'
+  condition:
+    condition: and
+    conditions:
+    - condition: template
+      value_template: '{{ "on-press" == trigger.payload_json.action }}'
+  action:
+    service: light.turn_on
+    entity_id: light.bedroom
+- id: bedroom_turn_off_bedside
+  alias: "Bedroom Turn Off (Bedside)"
+  trigger:
+    platform: mqtt
+    topic: 'zigbee2mqtt/0x00178801020f7d36'
+  condition:
+    condition: and
+    conditions:
+    - condition: template
+      value_template: '{{ "off-press" == trigger.payload_json.action }}'
+  action:
+    - service: light.turn_off
+      entity_id: light.bedroom
+    - service: light.turn_off
+      entity_id: light.bedroom_headboard
+- id: bedroom_dim_bedside
+  alias: "Bedroom Dim"
+  trigger:
+    platform: mqtt
+    topic: 'zigbee2mqtt/0x00178801020f7d36'
+  condition:
+    condition: and
+    conditions:
+    - condition: template
+      value_template: '{{ "down-press" == trigger.payload_json.action }}'
+  action:
+    service: scene.turn_on
+    entity_id: scene.bedroom_dim
+- id: bedroom_brighten_night_bedside
+  alias: "Bedroom Brighten Night (Bedside)"
+  trigger:
+    platform: mqtt
+    topic: 'zigbee2mqtt/0x00178801020f7d36'
+  condition:
+    condition: and
+    conditions:
+      - condition: template
+        value_template: '{{ "up-press" == trigger.payload_json.action }}'
+      - condition: state
+        entity_id: sun.sun
+        state: 'below_horizon'
+  action:
+    service: scene.turn_on
+    entity_id: scene.bedroom_night
+- id: bedroom_brighten_day_bedside
+  alias: "Bedroom Brighten Day (Bedside)"
+  trigger:
+    platform: mqtt
+    topic: 'zigbee2mqtt/0x00178801020f7d36'
+  condition:
+    condition: and
+    conditions:
+      - condition: template
+        value_template: '{{ "up-press" == trigger.payload_json.action }}'
+      - condition: state
+        entity_id: sun.sun
+        state: 'above_horizon'
+  action:
+    service: scene.turn_on
+    entity_id: scene.bedroom_day
+- id: lights_off_bedside
+  alias: "Lights off (bedside)"
+  trigger:
+    platform: mqtt
+    topic: 'zigbee2mqtt/0x00178801020f7d36'
+  condition:
+    condition: and
+    conditions:
+      - condition: template
+        value_template: '{{ "off-hold" == trigger.payload_json.action }}'
   action:
     - service: homeassistant.turn_off
-      entity_id: group.all_lights
-    - service: switch.turn_off
-      entity_id: switch.guest_bedroom_lamp
-    - service: switch.turn_off
-      entity_id: switch.dining_room_light
+      entity_id: group.living_room
     - service: switch.turn_off
       entity_id: switch.kitchen_switch
+    - service: switch.turn_off
+      entity_id: switch.office_switch
+    - service: switch.turn_off
+      entity_id: switch.living_room_switch
+    - service: scene.turn_on
+      entity_id: scene.kitchen_off
+- id: bedroom_turn_on_april_bedside
+  alias: "Bedroom Turn On (April bedside)"
+  trigger:
+    platform: mqtt
+    topic: 'zigbee2mqtt/0x00178801040ae9fb'
+  condition:
+    condition: and
+    conditions:
+    - condition: template
+      value_template: '{{ "on-press" == trigger.payload_json.action }}'
+  action:
+    service: light.turn_on
+    entity_id: light.bedroom
+- id: bedroom_turn_off_april_bedside
+  alias: "Bedroom Turn Off (April bedside)"
+  trigger:
+    platform: mqtt
+    topic: 'zigbee2mqtt/0x00178801040ae9fb'
+  condition:
+    condition: and
+    conditions:
+    - condition: template
+      value_template: '{{ "off-press" == trigger.payload_json.action }}'
+  action:
+    - service: light.turn_off
+      entity_id: light.bedroom
+    - service: light.turn_off
+      entity_id: light.bedroom_headboard
+- id: bedroom_dim_april_bedside
+  alias: "Bedroom Dim"
+  trigger:
+    platform: mqtt
+    topic: 'zigbee2mqtt/0x00178801040ae9fb'
+  condition:
+    condition: and
+    conditions:
+    - condition: template
+      value_template: '{{ "down-press" == trigger.payload_json.action }}'
+  action:
+    service: scene.turn_on
+    entity_id: scene.bedroom_dim
+- id: bedroom_brighten_night_april_bedside
+  alias: "Bedroom Brighten Night (April bedside)"
+  trigger:
+    platform: mqtt
+    topic: 'zigbee2mqtt/0x00178801040ae9fb'
+  condition:
+    condition: and
+    conditions:
+      - condition: template
+        value_template: '{{ "up-press" == trigger.payload_json.action }}'
+      - condition: state
+        entity_id: sun.sun
+        state: 'below_horizon'
+  action:
+    service: scene.turn_on
+    entity_id: scene.bedroom_night
+- id: bedroom_brighten_day_april_bedside
+  alias: "Bedroom Brighten Day (April bedside)"
+  trigger:
+    platform: mqtt
+    topic: 'zigbee2mqtt/0x00178801040ae9fb'
+  condition:
+    condition: and
+    conditions:
+      - condition: template
+        value_template: '{{ "up-press" == trigger.payload_json.action }}'
+      - condition: state
+        entity_id: sun.sun
+        state: 'above_horizon'
+  action:
+    service: scene.turn_on
+    entity_id: scene.bedroom_day
+- id: lights_off_april_bedside
+  alias: "Lights off (April bedside)"
+  trigger:
+    platform: mqtt
+    topic: 'zigbee2mqtt/0x00178801040ae9fb'
+  condition:
+    condition: and
+    conditions:
+      - condition: template
+        value_template: '{{ "off-hold" == trigger.payload_json.action }}'
+  action:
+    - service: homeassistant.turn_off
+      entity_id: group.living_room
+    - service: switch.turn_off
+      entity_id: switch.kitchen_switch
+    - service: switch.turn_off
+      entity_id: switch.office_switch
+    - service: switch.turn_off
+      entity_id: switch.living_room_switch
+    - service: scene.turn_on
+      entity_id: scene.kitchen_off
 - id: double_tap_on_living_room
   alias: 'Double tap on living room'
-  hide_entity: True
   trigger:
     - platform: event
       event_type: zwave.scene_activated
@@ -339,7 +562,6 @@
     entity_id: scene.main_room_relax
 - id: triple_tap_on_living_room
   alias: 'Triple tap on living room'
-  hide_entity: True
   trigger:
     - platform: event
       event_type: zwave.scene_activated
@@ -352,7 +574,6 @@
     entity_id: scene.movie
 - id: single_tap_on_kitchen
   alias: 'Single tap on kitchen'
-  hide_entity: True
   trigger:
     - platform: event
       event_type: zwave.scene_activated
@@ -365,7 +586,6 @@
     entity_id: scene.kitchen_on
 - id: double_tap_on_kitchen
   alias: 'Double tap on kitchen'
-  hide_entity: True
   trigger:
     - platform: event
       event_type: zwave.scene_activated
@@ -378,7 +598,6 @@
     entity_id: scene.kitchen_relax
 - id: triple_tap_on_kitchen
   alias: 'Triple tap on kitchen'
-  hide_entity: True
   trigger:
     - platform: event
       event_type: zwave.scene_activated
@@ -390,8 +609,7 @@
     service: scene.turn_on
     entity_id: scene.kitchen_range
 - id: single_tap_off_kitchen
-  alias: 'single tap off kitchen'
-  hide_entity: True
+  alias: 'Single tap off kitchen'
   trigger:
     - platform: event
       event_type: zwave.scene_activated
@@ -403,8 +621,7 @@
     service: scene.turn_on
     entity_id: scene.kitchen_off
 - id: double_tap_off_kitchen
-  alias: 'double tap off kitchen'
-  hide_entity: True
+  alias: 'Double tap off kitchen'
   trigger:
     - platform: event
       event_type: zwave.scene_activated
@@ -425,7 +642,6 @@
 ##
 - id: single_tap_on_living_room
   alias: 'Single tap on living room'
-  hide_entity: True
   trigger:
     - platform: event
       event_type: zwave.scene_activated
@@ -439,10 +655,9 @@
     state: 'on'
   action:
     service: scene.turn_on
-    entity_id: scene.main_room_on
+    entity_id: scene.living_room_on
 - id: single_tap_off_living_room
   alias: 'Single tap off living room'
-  hide_entity: True
   trigger:
     - platform: event
       event_type: zwave.scene_activated
@@ -456,7 +671,60 @@
     state: 'off'
   action:
     service: scene.turn_on
-    entity_id: scene.main_room_off
+    entity_id: scene.living_room_off
+- id: office_on
+  alias: "Office On"
+  trigger:
+    platform: state
+    entity_id: switch.office_switch
+    to: 'on'
+  action:
+    service: scene.turn_on
+    entity_id: scene.office_on
+- id: office_off
+  alias: "Office Off"
+  trigger:
+    platform: state
+    entity_id: switch.office_switch
+    to: 'off'
+  condition:
+    condition: template
+    value_template: "{% if not is_state('media_player.kodi', 'playing') %}true{% endif %}"
+  action:
+    service: scene.turn_on
+    entity_id: scene.office_off
+- id: single_tap_on_office
+  alias: 'Single tap on office'
+  condition:
+    condition: state
+    entity_id: switch.office_switch
+    state: 'on'
+  trigger:
+    - platform: event
+      event_type: zwave.scene_activated
+      event_data:
+        entity_id: zwave.office_switch
+        scene_id: 1
+        scene_data: 7680
+  action:
+    service: scene.turn_on
+    entity_id: scene.office_on
+- id: single_tap_off_office
+  alias: 'Single tap off office'
+  condition:
+    condition: state
+    entity_id: switch.office_switch
+    state: 'on'
+  trigger:
+    - platform: event
+      event_type: zwave.scene_activated
+      event_data:
+        entity_id: zwave.office_switch
+        scene_id: 2
+        scene_data: 7680
+  action:
+    service: scene.turn_on
+    entity_id: scene.office_off
 - id: wake_up_light
   alias: 'Wake Up Light'
   trigger:
@@ -464,36 +732,118 @@
     topic: light/wakeup
   action:
     service: script.sunrise
-#- id: hold_on_living_room
-#  alias: 'Hold on living room'
-#  hide_entity: True
-#  trigger:
-#    - platform: event
-#      event_type: zwave.scene_activated
-#      event_data:
-#        entity_id: zwave.living_room_switch
-#        scene_id: 2
-#        scene_data: 7800
-#  action:
-#    service: homeassistant.turn_off
-#    entity_id: group.living_room
-#- id: double_tap_off_living_room
-#  alias: 'Double tap off living room'
-#  hide_entity: True
-#  trigger:
-#    - platform: event
-#      event_type: zwave.scene_activated
-#      event_data:
-#        entity_id: zwave.living_room_switch
-#        scene_id: 2
-#        scene_data: 7860
-#- id: triple_tap_off_living_room
-#  alias: 'Triple tap off living room'
-#  hide_entity: True
-#  trigger:
-#    - platform: event
-#      event_type: zwave.scene_activated
-#      event_data:
-#        entity_id: zwave.living_room_switch
-#        scene_id: 2
-#        scene_data: 7920
+- id: hold_off_office
+  alias: 'Hold off office'
+  trigger:
+    - platform: event
+      event_type: zwave.scene_activated
+      event_data:
+        entity_id: zwave.office_switch
+        scene_id: 2
+        scene_data: 7800
+  action:
+    - service: homeassistant.turn_off
+      entity_id: group.all_lights
+    - service: switch.turn_off
+      entity_id: switch.guest_bedroom_lamp
+    - service: switch.turn_off
+      entity_id: switch.dining_room_light
+    - service: switch.turn_off
+      entity_id: switch.kitchen_switch
+    - service: switch.turn_off
+      entity_id: switch.living_room_switch
+- id: hold_off_living_room
+  alias: 'Hold off living room'
+  trigger:
+    - platform: event
+      event_type: zwave.scene_activated
+      event_data:
+        entity_id: zwave.living_room_switch
+        scene_id: 2
+        scene_data: 7800
+  action:
+    - service: homeassistant.turn_off
+      entity_id: group.all_lights
+    - service: switch.turn_off
+      entity_id: switch.guest_bedroom_lamp
+    - service: switch.turn_off
+      entity_id: switch.dining_room_light
+    - service: switch.turn_off
+      entity_id: switch.kitchen_switch
+    - service: switch.turn_off
+      entity_id: switch.office_switch
+- id: guest_bedroom_turn_on
+  alias: "Guest Bedroom Turn On"
+  trigger:
+    platform: mqtt
+    topic: 'zigbee2mqtt/0x00178801021a9706'
+  condition:
+    condition: and
+    conditions:
+    - condition: template
+      value_template: '{{ "on-press" == trigger.payload_json.action }}'
+  action:
+    - service: light.turn_on
+      entity_id: light.guest_bedside_table
+    - service: switch.turn_on
+      entity_id: switch.guest_bedroom_lamp
+- id: guest_bedroom_turn_off
+  alias: "Guest Bedroom Turn Off"
+  trigger:
+    platform: mqtt
+    topic: 'zigbee2mqtt/0x00178801021a9706'
+  condition:
+    condition: and
+    conditions:
+    - condition: template
+      value_template: '{{ "off-press" == trigger.payload_json.action }}'
+  action:
+    - service: light.turn_off
+      entity_id: light.guest_bedside_table
+    - service: switch.turn_off
+      entity_id: switch.guest_bedroom_lamp
+- id: guest_bedroom_dim
+  alias: "Guest Bedroom Dim"
+  trigger:
+    platform: mqtt
+    topic: 'zigbee2mqtt/0x00178801021a9706'
+  condition:
+    condition: and
+    conditions:
+    - condition: template
+      value_template: '{{ "down-press" == trigger.payload_json.action }}'
+  action:
+    service: scene.turn_on
+    entity_id: scene.guest_bedroom_dim
+- id: guest_bedroom_brighten_night
+  alias: "Guest Bedroom Brighten Night"
+  trigger:
+    platform: mqtt
+    topic: 'zigbee2mqtt/0x00178801021a9706'
+  condition:
+    condition: and
+    conditions:
+    - condition: template
+      value_template: '{{ "up-press" == trigger.payload_json.action }}'
+    - condition: state
+      entity_id: sun.sun
+      state: 'below_horizon'
+  action:
+    service: scene.turn_on
+    entity_id: scene.guest_bedroom_night
+- id: guest_bedroom_brighten_day
+  alias: "Guest Bedroom Brighten Day"
+  trigger:
+    platform: mqtt
+    topic: 'zigbee2mqtt/0x00178801021a9706'
+  condition:
+    condition: and
+    conditions:
+      - condition: template
+        value_template: '{{ "up-press" == trigger.payload_json.action }}'
+      - condition: state
+        entity_id: sun.sun
+        state: 'above_horizon'
+  action:
+    service: scene.turn_on
+    entity_id: scene.guest_bedroom_day

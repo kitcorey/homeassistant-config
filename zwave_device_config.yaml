@@ -1,0 +1,8 @@
+light.guest_bathroom_dimmer_level:
+  refresh_value: true
+  delay: 3
+  polling_intensity: 1
+light.bathroom_dimmer_level:
+  refresh_value: true
+  delay: 3
+  polling_intensity: 1
